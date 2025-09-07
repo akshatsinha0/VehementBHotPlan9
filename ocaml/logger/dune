@@ -1,0 +1,4 @@
+(executable
+ (name logger)
+ (modes native byte)
+ (libraries unix))

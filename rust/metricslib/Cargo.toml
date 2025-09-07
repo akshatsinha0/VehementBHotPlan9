@@ -1,0 +1,12 @@
+[package]
+name = "metricslib"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "metricslib"
+crate-type = ["cdylib"]
+
+[dependencies]
+once_cell = "1.19"
+ahash = "0.8"

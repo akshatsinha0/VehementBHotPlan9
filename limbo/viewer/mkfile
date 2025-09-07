@@ -1,0 +1,7 @@
+</$objtype/mkfile
+
+BIN=./
+TARG=browse
+MODULES=browse
+
+</$ROOT/mkfiles/mkmod
