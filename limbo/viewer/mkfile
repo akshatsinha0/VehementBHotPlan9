@@ -1,7 +1,7 @@
 </$objtype/mkfile
 
 BIN=./
-TARG=browse
-MODULES=browse
+TARG=browse tail
+MODULES=browse tail
 
 </$ROOT/mkfiles/mkmod

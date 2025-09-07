@@ -1,8 +1,8 @@
-implement Browse;
+implement Tail;
 include "sys.m";
 	sys: Sys;
 
-Browse: module
+Tail: module
 {
 	init: fn(nil: ref Draw->Context, args: list of string);
 };
@@ -53,6 +53,38 @@ readn: fn(fd: ref Sys->FD, n: int): array of byte
 	return b[:m];
 }
 
+openpath: fn(fd: ref Sys->FD, elems: list of string): int
+{
+	fid := 1;
+	newfid := 1;
+	tag := 2;
+	a := array of byte;
+	a += p32(fid);
+	a += p32(0);
+	a += packstr("inferno");
+	a += packstr("");
+	writepkt(fd, 104, tag, a);
+	_ = readn(fd, 4+1+2+13);
+	for(s := elems; s != nil; s = tl s) {
+		w := array of byte;
+		w += p32(newfid);
+		newfid++;
+		w += p32(newfid);
+		w += p16(1);
+		w += packstr(hd s);
+		tag++;
+		writepkt(fd, 110, tag, w);
+		_ = readn(fd, 4+1+2+2+13);
+	}
+	o := array of byte;
+	o += p32(newfid);
+	o[len o] = byte 0;
+	tag++;
+	writepkt(fd, 112, tag, o);
+	_ = readn(fd, 4+1+2+13+4);
+	return newfid;
+}
+
 init(nil: ref Draw->Context, args: list of string)
 {
 	sys = load Sys Sys->PATH;
@@ -61,46 +93,17 @@ init(nil: ref Draw->Context, args: list of string)
 	body += packstr("9P2000.u");
 	writepkt(fd, 100, 1, body);
 	_ = readn(fd, 4+1+2+4+2+10);
-	a := array of byte;
-	a += p32(1);
-	a += p32(0);
-	a += packstr("inferno");
-	a += packstr("");
-	writepkt(fd, 104, 2, a);
-	_ = readn(fd, 4+1+2+13);
-	w := array of byte;
-	w += p32(1);
-	w += p32(2);
-	w += p16(1);
-	w += packstr("svc");
-	writepkt(fd, 110, 3, w);
-	_ = readn(fd, 4+1+2+2+13);
-	w = array of byte;
-	w += p32(2);
-	w += p32(3);
-	w += p16(1);
-	w += packstr("metrics");
-	writepkt(fd, 110, 4, w);
-	_ = readn(fd, 4+1+2+2+13);
-	w = array of byte;
-	w += p32(3);
-	w+= p32(4);
-	w+= p16(1);
-	w +=  packstr("counters");
-	writepkt(fd, 110, 5, w);
-	_ = readn(fd, 4+1+2+2+13);
-	o := array of byte;
-	o += p32(4);
-	o[len o] = byte 0;
-	writepkt(fd, 112, 6, o);
-	_ = readn(fd, 4+1+2+13+4);
-	r := array of byte;
-	r += p32(4);
-	r += array[33] of byte;
-	r += p32(65536);
-	writepkt(fd, 116, 7, r);
-	h := readn(fd, 4);
-	n := int h | int h[25]<<8 | int h[29]<<16 | int h[31]<<24;
-	d := readn(fd, n);
-	sys->print("%s", string d[4:]); //->
+	fid := openpath(fd, "svc" :: "logs" :: "app" :: nil);
+	off := big 0;
+	for(i:=0; i<100; i++) {
+		r := array of byte;
+		r += p32(fid);
+		r += array[33] of byte;
+		r += p32(4096);
+		writepkt(fd, 116, 200+i, r);
+		h := readn(fd, 4);
+		n := int h | int h[25]<<8 | int h[29]<<16 | int h[31]<<24;
+		d := readn(fd, n);
+		sys->print("%s", string d[4:]);
+	}
 }

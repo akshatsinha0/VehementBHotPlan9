@@ -1,0 +1,23 @@
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+target/
+_build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
